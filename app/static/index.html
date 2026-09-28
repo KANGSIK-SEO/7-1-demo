@@ -1,155 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evollard Quantum Verification (Lite)</title>
+    <title>명화 찾기 챗봇</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <!-- No external JS library dependencies -->
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-
 <body>
+    <main class="chat-container">
+        <header class="chat-header">
+            <div>🖼️ 퍼블릭 도메인 명화 찾기</div>
+            <div class="status-bar" id="status-bar">로그인이 필요합니다</div>
+            <button id="logout-btn" class="link-btn" hidden>로그아웃</button>
+        </header>
 
-    <div class="chat-container">
-        <div class="chat-header">
-            <div>Evollard AI</div>
-            <div class="status-bar" id="status-bar">Neural Engine Idle</div>
-        </div>
-
-        <div id="chat-log" class="chat-log">
-            <div class="message bot">
-                🤖 Welcome to Evollard Lite.<br>
-                Please upload an image to verify authenticity.<br>
-                If you make a mistake, type 'STOP' immediately.
+        <section id="auth-panel" class="auth-panel">
+            <p class="hint">상업적으로 써도 되는 CC0 명화를 한국어로 물어보세요.<br>(MET · Art Institute of Chicago 공개 데이터)</p>
+            <input type="email" id="email" placeholder="이메일" autocomplete="username">
+            <input type="password" id="password" placeholder="비밀번호 (8자 이상)" autocomplete="current-password">
+            <div class="auth-buttons">
+                <button id="login-btn" class="pill">로그인</button>
+                <button id="signup-btn" class="pill secondary">회원가입</button>
             </div>
-        </div>
+            <div id="auth-error" class="error-text" role="alert"></div>
+        </section>
 
-        <div class="input-area">
-            <input type="file" id="file-input" accept="image/*">
-            <button id="upload-btn" title="Upload Image">📷</button>
-            <input type="text" id="message-input" placeholder="Type message or 'STOP'..." autocomplete="off">
-            <button id="send-btn" title="Send">➤</button>
-        </div>
-    </div>
-
-    <script>
-        // --- Core Logic: Lightweight Simulation Engine ---
-
-        let activeProcess = null; // Stores the current timeout ID
-        const steps = [
-            "🔍 Analyzing image structure...",
-            "🌌 Initializing Quantum Kernel...",
-            "🎨 Extracting stylistic features (Brushstroke Analysis)...",
-            "📜 Cross-referencing Provenance Blockchain...",
-            "🧪 Performing Pigment Chemical Simulation...",
-            "✅ Calculating Authenticity Probability..."
-        ];
-
-        const chatLog = document.getElementById("chat-log");
-        const statusText = document.getElementById("status-bar");
-        const messageInput = document.getElementById("message-input");
-        const fileInput = document.getElementById("file-input");
-
-        function appendMessage(sender, text, type = "text") {
-            const msgDiv = document.createElement("div");
-            msgDiv.className = `message ${sender}`;
-            if (type === "error") msgDiv.classList.add("error");
-            if (type === "success") msgDiv.classList.add("success");
-            if (type === "system") {
-                msgDiv.className = "system"; // Override class
-                if (sender === "error") msgDiv.classList.add("error");
-                if (sender === "success") msgDiv.classList.add("success");
-            }
-
-            msgDiv.innerHTML = text; // Allow HTML for line breaks
-            chatLog.appendChild(msgDiv);
-            chatLog.scrollTop = chatLog.scrollHeight;
-        }
-
-        // Handles the "STOP" command
-        function handleCancel() {
-            if (activeProcess) {
-                clearTimeout(activeProcess);
-                activeProcess = null;
-                statusText.innerText = "Engine Aborted";
-                appendMessage("error", "🛑 Verification process ABORTED by user request.", "system");
-                appendMessage("bot", "Resources released. No charges applied. Waiting for correct image.");
-                return true;
-            }
-            return false;
-        }
-
-        // Simulates the long quantum process
-        function runVerification(stepIndex = 0) {
-            if (stepIndex >= steps.length) {
-                // Finished
-                const isFake = Math.random() < 0.3; // 30% chance of fake for demo
-                const result = isFake
-                    ? "🚨 Result: Likely FORGERY (98.4% confidence)"
-                    : "✅ Result: AUTHENTIC (99.9% confidence)";
-
-                appendMessage(isFake ? "error" : "success", result, "system");
-                statusText.innerText = "Verification Complete";
-                activeProcess = null;
-                return;
-            }
-
-            statusText.innerText = "Processing... Step " + (stepIndex + 1);
-            appendMessage("bot", steps[stepIndex]);
-
-            // Schedule next step (2 seconds delay)
-            activeProcess = setTimeout(() => {
-                runVerification(stepIndex + 1);
-            }, 2000);
-        }
-
-        function sendMessage() {
-            const msg = messageInput.value.trim();
-            if (!msg) return;
-
-            appendMessage("user", msg);
-            messageInput.value = "";
-
-            // Check for cancellation keywords
-            const cancelKeywords = ["stop", "cancel", "no", "wait", "halt", "wrong"];
-            if (cancelKeywords.some(k => msg.toLowerCase().includes(k))) {
-                if (!handleCancel()) {
-                    appendMessage("bot", "There is no active process to cancel.");
-                }
-            }
-        }
-
-        // Event Listeners
-        document.getElementById("send-btn").addEventListener("click", sendMessage);
-        messageInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") sendMessage();
-        });
-
-        document.getElementById("upload-btn").addEventListener("click", () => fileInput.click());
-
-        fileInput.addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                // 1. Cancel any existing process automatically
-                if (activeProcess) {
-                    clearTimeout(activeProcess);
-                    appendMessage("system", "⚠️ Previous task cancelled for new request.", "system");
-                }
-
-                // 2. Start new process
-                appendMessage("user", `[Uploaded: ${file.name}]`);
-                appendMessage("bot", `Received '${file.name}'. Starting Quantum Verification...`);
-                fileInput.value = ""; // Reset input
-
-                // Start simulation loop
-                activeProcess = setTimeout(() => runVerification(0), 1000);
-            }
-        });
-
-    </script>
-
+        <section id="chat-panel" hidden>
+            <div id="chat-log" class="chat-log">
+                <div class="message bot">안녕하세요! 어떤 명화를 찾으세요?<br>예) "봄 느낌 풍경화 보여줘", "모네 작품 중 물이 나오는 그림"</div>
+            </div>
+            <form id="chat-form" class="input-area">
+                <input type="text" id="message-input" maxlength="500" placeholder="질문을 입력하세요 (최대 500자)" autocomplete="off">
+                <button id="send-btn" type="submit" title="보내기">➤</button>
+            </form>
+        </section>
+    </main>
+    <script src="/static/app.js"></script>
 </body>
-
 </html>
