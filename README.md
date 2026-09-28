@@ -3,6 +3,8 @@
 "상업적으로 써도 되는 명화"를 한국어로 물어보면, MET·Art Institute of Chicago의 **CC0(퍼블릭 도메인) 작품 DB**에서
 근거를 찾아 답하고 원본 이미지·출처 링크를 카드로 보여주는 웹 챗봇 (FastAPI).
 
+**서비스 URL: https://art-chatbot-eight.vercel.app**
+
 ## 1. 프로젝트 개요
 - **문제**: PPT·블로그·굿즈·썸네일 제작자는 "저작권 걱정 없는 명화"를 찾을 때 라이선스를 일일이 확인해야 한다.
   범용 챗봇은 라이선스·원본 이미지 링크를 보증하지 못한다.
@@ -86,7 +88,12 @@ docker build -t art-chatbot-ubuntu .
 docker run --rm art-chatbot-ubuntu python -m pytest -q tests          # 14 passed (Ubuntu 24.04, Python 3.12)
 docker run -d --rm -p 8000:8000 --env-file .env art-chatbot-ubuntu    # http://localhost:8000
 ```
-Vercel Functions도 Linux 런타임에서 실행되며, 배포 명령(`vercel deploy --prod`)은 위 Ubuntu 환경의 셸에서 실행한다.
+Vercel Functions도 Linux 런타임에서 실행되며, 배포는 Ubuntu 24.04 컨테이너(`deploy/Dockerfile`, Node + Vercel CLI)의 셸에서 실행했다.
+```bash
+docker build -t art-vercel-ubuntu deploy
+docker run --rm -it -v vercel-auth:/root/.local/share -v vercel-auth-cfg:/root/.config -v "$PWD":/app art-vercel-ubuntu vercel login
+docker run --rm -v vercel-auth:/root/.local/share -v vercel-auth-cfg:/root/.config -v "$PWD":/app art-vercel-ubuntu vercel deploy --prod --yes
+```
 서버 없이 Ubuntu 서버에 직접 올리는 경우에는 `apt install python3-venv` 후 위 "실행" 절차와 `uvicorn`을 systemd로 상시 실행하면 된다.
 
 **환경 변수** (`.env.example` 참고, 값은 절대 커밋하지 않는다)
